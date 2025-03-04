@@ -20,7 +20,6 @@ public static class PlayerAI
         int beta = int.MaxValue;
 
         TurnMove moves = new TurnMove(matrix, matrix, AIToken);
-
     }
 }
 
