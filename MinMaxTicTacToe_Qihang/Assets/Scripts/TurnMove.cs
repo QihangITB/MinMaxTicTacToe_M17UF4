@@ -25,12 +25,7 @@ public class TurnMove
         this.previousMatrix = previous;
         this.currentMatrix = current;
         this.followingMoves = CreateFollowingMovements(currentMatrix, token);
-
-        if (this.followingMoves.Count == 0)
-        {
-            Debug.Log("No more moves");
-            this.value = Calculs.EvaluateWin(current);
-        }
+        this.value = this.followingMoves.Count == 0 ? Calculs.EvaluateWin(current) : 0;
     }
 
     public TurnMove(int[,] current, int token) : this(null, current, token) { }
@@ -53,6 +48,9 @@ public class TurnMove
                 newMatrix[(int)row, (int)column] = token;
                 result.Add(new TurnMove(matrix, newMatrix, -token));
 
+                // Debug para ver qué movimientos se están generando
+                Debug.Log($"Generando movimiento para {token} en posición ({row}, {column})");
+                
                 // Guardamos también el recorrido para no repetir ("bloquear" la casilla)
                 process[(int)row, (int)column] = token;
             }

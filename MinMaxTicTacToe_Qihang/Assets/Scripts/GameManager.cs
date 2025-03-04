@@ -51,6 +51,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
         RandomAI();
     }
+
     public void RandomAI()
     {
         int x;
@@ -63,6 +64,7 @@ public class GameManager : MonoBehaviour
         DoMove(x, y, -1);
         state = States.CanMove;
     }
+
     public void DoMove(int x, int y, int team)
     {
         Matrix[x, y] = team;
