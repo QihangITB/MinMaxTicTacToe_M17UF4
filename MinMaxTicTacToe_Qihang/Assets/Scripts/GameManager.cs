@@ -46,24 +46,61 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
     private IEnumerator WaitingABit()
     {
         yield return new WaitForSeconds(1f);
-        RandomAI();
+        MinimaxAI();
     }
 
-    public void RandomAI()
+    public void MinimaxAI()
     {
-        int x;
-        int y;
-        do
+        TurnMove rootMove = new TurnMove(Matrix, -1);
+        TurnMove bestMove = rootMove.GetBestMove();
+
+        if (bestMove != null)
         {
-            x = Random.Range(0, Size);
-            y = Random.Range(0, Size);
-        } while (Matrix[x, y] != 0);
-        DoMove(x, y, -1);
+            for (int i = 0; i < Size; i++)
+            {
+                for (int j = 0; j < Size; j++)
+                {
+                    Debug.Log(bestMove.CurrentMatrix[i, j]);
+                }
+                Debug.Log(" ");
+            }
+            Matrix = bestMove.CurrentMatrix;
+            ApplyBestMove(bestMove);
+        }
         state = States.CanMove;
     }
+
+    private void ApplyBestMove(TurnMove bestMove)
+    {
+        for (int i = 0; i < Size; i++)
+        {
+            for (int j = 0; j < Size; j++)
+            {
+                if (Matrix[i, j] != bestMove.PreviousMatrix[i, j])
+                {
+                    DoMove(i, j, -1);
+                    return;
+                }
+            }
+        }
+    }
+
+    //public void RandomAI()
+    //{
+    //    int x;
+    //    int y;
+    //    do
+    //    {
+    //        x = Random.Range(0, Size);
+    //        y = Random.Range(0, Size);
+    //    } while (Matrix[x, y] != 0);
+    //    DoMove(x, y, -1);
+    //    state = States.CanMove;
+    //}
 
     public void DoMove(int x, int y, int team)
     {

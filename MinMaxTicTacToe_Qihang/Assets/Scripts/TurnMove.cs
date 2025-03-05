@@ -24,7 +24,7 @@ public class TurnMove
     {
         this.previousMatrix = previous;
         this.currentMatrix = current;
-        this.followingMoves = CreateFollowingMovements(currentMatrix, token);
+        this.followingMoves = CreateFollowingMovements(currentMatrix, -token);
         this.value = this.followingMoves.Count == 0 ? Calculs.EvaluateWin(current) : 0;
     }
 
@@ -46,10 +46,7 @@ public class TurnMove
                 // Creamos una nueva matriz con el movimiento simulado y lo guardamos
                 int[,] newMatrix = (int[,])matrix.Clone(); ;
                 newMatrix[(int)row, (int)column] = token;
-                result.Add(new TurnMove(matrix, newMatrix, -token));
-
-                // Debug para ver qué movimientos se están generando
-                Debug.Log($"Generando movimiento para {token} en posición ({row}, {column})");
+                result.Add(new TurnMove(matrix, newMatrix, token));
                 
                 // Guardamos también el recorrido para no repetir ("bloquear" la casilla)
                 process[(int)row, (int)column] = token;
@@ -73,6 +70,56 @@ public class TurnMove
             }
         }
         return (null, null);
+    }
+
+    public int Minimax(bool isMaximizing, int alpha, int beta)
+    {
+        if (followingMoves.Count == 0)
+        {
+            return Calculs.EvaluateWin(currentMatrix);
+        }
+
+        if (isMaximizing)
+        {
+            int maxEval = int.MinValue;
+            foreach (var move in followingMoves)
+            {
+                int eval = move.Minimax(false, alpha, beta);
+                maxEval = Math.Max(maxEval, eval);
+                alpha = Math.Max(alpha, eval);
+                if (beta <= alpha) break;
+            }
+            return maxEval;
+        }
+        else
+        {
+            int minEval = int.MaxValue;
+            foreach (var move in followingMoves)
+            {
+                int eval = move.Minimax(true, alpha, beta);
+                minEval = Math.Min(minEval, eval);
+                beta = Math.Min(beta, eval);
+                if (beta <= alpha) break;
+            }
+            return minEval;
+        }
+    }
+
+    public TurnMove GetBestMove()
+    {
+        int bestValue = int.MinValue;
+        TurnMove bestMove = null;
+
+        foreach (var move in followingMoves)
+        {
+            int moveValue = move.Minimax(false, int.MinValue, int.MaxValue);
+            if (moveValue > bestValue)
+            {
+                bestValue = moveValue;
+                bestMove = move;
+            }
+        }
+        return bestMove;
     }
 }
 
