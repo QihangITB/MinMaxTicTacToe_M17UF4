@@ -72,53 +72,61 @@ public class TurnMove
         return (null, null);
     }
 
-    public int Minimax(bool isMaximizing, int alpha, int beta)
-    {
-        if (followingMoves.Count == 0)
-        {
-            return Calculs.EvaluateWin(currentMatrix);
-        }
 
-        if (isMaximizing)
+
+    // Implementación del algoritmo Minimax con poda alfa-beta sin profundidad
+    public static int MinimaxWithAlphaBeta(TurnMove currentMove, bool isPlayerMinimizer, int alpha, int beta)
+    {
+        // Evaluamos si es un estado final
+        int result = Calculs.EvaluateWin(currentMove.CurrentMatrix);
+        if (result != 0)
+            return result; // Retorna el valor de la evaluación si hay un ganador o empate
+
+        // Si no es un estado final, continuamos con los movimientos siguientes
+        if (isPlayerMinimizer) // Es el turno del jugador (quien minimiza)
         {
-            int maxEval = int.MinValue;
-            foreach (var move in followingMoves)
+            int bestValue = int.MaxValue;
+            foreach (TurnMove nextMove in currentMove.FollowingMoves)
             {
-                int eval = move.Minimax(false, alpha, beta);
-                maxEval = Math.Max(maxEval, eval);
-                alpha = Math.Max(alpha, eval);
-                if (beta <= alpha) break;
+                bestValue = Mathf.Min(bestValue, MinimaxWithAlphaBeta(nextMove, false, alpha, beta));
+                beta = Mathf.Min(beta, bestValue);
+                if (beta <= alpha)
+                    break; // Poda beta
             }
-            return maxEval;
+            return bestValue;
         }
-        else
+        else // Es el turno de la IA (quien maximiza)
         {
-            int minEval = int.MaxValue;
-            foreach (var move in followingMoves)
+            int bestValue = int.MinValue;
+            foreach (TurnMove nextMove in currentMove.FollowingMoves)
             {
-                int eval = move.Minimax(true, alpha, beta);
-                minEval = Math.Min(minEval, eval);
-                beta = Math.Min(beta, eval);
-                if (beta <= alpha) break;
+                bestValue = Mathf.Max(bestValue, MinimaxWithAlphaBeta(nextMove, true, alpha, beta));
+                alpha = Mathf.Max(alpha, bestValue);
+                if (beta <= alpha)
+                    break; // Poda alfa
             }
-            return minEval;
+            return bestValue;
         }
     }
 
-    public TurnMove GetBestMove()
+    // Función para realizar el movimiento de la IA
+    public static TurnMove GetBestMove(TurnMove currentMove)
     {
         int bestValue = int.MinValue;
         TurnMove bestMove = null;
+        int alpha = int.MinValue;
+        int beta = int.MaxValue;
 
-        foreach (var move in followingMoves)
+        foreach (TurnMove nextMove in currentMove.FollowingMoves)
         {
-            int moveValue = move.Minimax(false, int.MinValue, int.MaxValue);
+            int moveValue = MinimaxWithAlphaBeta(nextMove, false, alpha, beta); // Se pasa false para que la IA maximice
             if (moveValue > bestValue)
             {
                 bestValue = moveValue;
-                bestMove = move;
+                bestMove = nextMove;
             }
         }
+
         return bestMove;
     }
 }

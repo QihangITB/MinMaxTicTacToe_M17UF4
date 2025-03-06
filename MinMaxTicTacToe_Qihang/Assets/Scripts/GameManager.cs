@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 public enum States
 {
@@ -50,57 +51,28 @@ public class GameManager : MonoBehaviour
     private IEnumerator WaitingABit()
     {
         yield return new WaitForSeconds(1f);
-        MinimaxAI();
+        AITurn();
     }
 
-    public void MinimaxAI()
+    public void AITurn()
     {
-        TurnMove rootMove = new TurnMove(Matrix, -1);
-        TurnMove bestMove = rootMove.GetBestMove();
+        int x, y;
+        PlayerAI minimaxAI = new PlayerAI();
+        (x,y) = minimaxAI.GetAiMove(Matrix);
 
-        if (bestMove != null)
-        {
-            for (int i = 0; i < Size; i++)
-            {
-                for (int j = 0; j < Size; j++)
-                {
-                    Debug.Log(bestMove.CurrentMatrix[i, j]);
-                }
-                Debug.Log(" ");
-            }
-            Matrix = bestMove.CurrentMatrix;
-            ApplyBestMove(bestMove);
-        }
+        DoMove(x, y, -1);
         state = States.CanMove;
-    }
 
-    private void ApplyBestMove(TurnMove bestMove)
-    {
-        for (int i = 0; i < Size; i++)
+        for(int i = 0; i < Matrix.GetLength(0); i++)
         {
-            for (int j = 0; j < Size; j++)
+            for (int j = 0; j < Matrix.GetLength(1); j++)
             {
-                if (Matrix[i, j] != bestMove.PreviousMatrix[i, j])
-                {
-                    DoMove(i, j, -1);
-                    return;
-                }
+                Debug.Log(Matrix[i, j]);
             }
+            Debug.Log("\n");
         }
-    }
 
-    //public void RandomAI()
-    //{
-    //    int x;
-    //    int y;
-    //    do
-    //    {
-    //        x = Random.Range(0, Size);
-    //        y = Random.Range(0, Size);
-    //    } while (Matrix[x, y] != 0);
-    //    DoMove(x, y, -1);
-    //    state = States.CanMove;
-    //}
+    }
 
     public void DoMove(int x, int y, int team)
     {
