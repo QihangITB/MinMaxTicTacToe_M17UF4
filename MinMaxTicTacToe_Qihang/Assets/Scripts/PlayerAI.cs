@@ -18,12 +18,11 @@ public class PlayerAI
 
     public (int, int) GetAiMove(int[,] matrix)
     {
+        int bestValue = int.MinValue;
+        int bestX = -1;
+        int bestY = -1;
         int alpha = int.MinValue;
         int beta = int.MaxValue;
-        int x = 0;
-        int y = 0;
-
-        int bestValue = int.MinValue;
 
         for (int i = 0; i < matrix.GetLength(0); i++)
         {
@@ -37,8 +36,8 @@ public class PlayerAI
                     if (value > bestValue)
                     {
                         bestValue = value;
-                        x = i;
-                        y = j;
+                        bestX = i;
+                        bestY = j;
                     }
                     matrix[i, j] = Empty;
 
@@ -48,57 +47,56 @@ public class PlayerAI
                 }
             }
         }
-        return (x,y);
+        return (bestX, bestY);
     }
 
-    public int Minimax(int[,] matrix, bool isPlayerMinimizer, int alpha, int beta)
+    private int Minimax(int[,] matrix, bool isPlayerTurn, int alpha, int beta)
     {
-        int result = Calculs.EvaluateWin(matrix);
-        if (result == UserPlayer) return AILose; // El jugador ha ganado, valor negativo para la IA
-        else if (result == AIPlayer) return AIWin; // La IA ha ganado, valor positivo para la IA
-        else if (result == Empty) return Draw; // Empate
-
-        if (isPlayerMinimizer) // Es el turno del jugador (quien minimiza)
+        switch (Calculs.EvaluateWin(matrix))
         {
-            int bestValue = int.MaxValue;
-            for (int i = 0; i < matrix.GetLength(0); i++)
-            {
-                for (int j = 0; j < matrix.GetLength(1); j++)
-                {
-                    if (matrix[i, j] == 0)
-                    {
-                        matrix[i, j] = 1; // El jugador pone su ficha
-                        bestValue = Mathf.Min(bestValue, Minimax(matrix, false, alpha, beta));
-                        matrix[i, j] = 0; // Deshacemos el movimiento
+            case UserPlayer:
+                return AILose; // Pierde el AI (Gana el jugador)
+            case AIPlayer:
+                return AIWin; // Gana el AI (Pierde el jugador)
+            case Empty:
+                return Draw; // Empate
 
+        }
+
+        // Assignamos los valores infinitos dependiendo del turno:
+        // +infinito para el jugador
+        // -infinito para la AI
+        int bestValue = isPlayerTurn ? int.MaxValue : int.MinValue;
+
+        for (int i = 0; i < matrix.GetLength(0); i++)
+        {
+            for (int j = 0; j < matrix.GetLength(1); j++)
+            {
+                if (matrix[i, j] == Empty)
+                {
+                    matrix[i, j] = isPlayerTurn ? UserPlayer : AIPlayer;
+                    int value = Minimax(matrix, !isPlayerTurn, alpha, beta);
+                    matrix[i, j] = Empty;
+
+                    if (isPlayerTurn)
+                    {
+                        // Si es turno del jugador, utilizaremos Minimo porque queremos el menor valor posible
+                        bestValue = Mathf.Min(bestValue, value);
                         beta = Mathf.Min(beta, bestValue);
                         if (beta <= alpha)
-                            break; // Poda beta
+                            break; // Podamos
                     }
-                }
-            }
-            return bestValue;
-        }
-        else // Es el turno de la IA (quien maximiza)
-        {
-            int bestValue = int.MinValue;
-            for (int i = 0; i < matrix.GetLength(0); i++)
-            {
-                for (int j = 0; j < matrix.GetLength(1); j++)
-                {
-                    if (matrix[i, j] == 0)
+                    else
                     {
-                        matrix[i, j] = -1; // La IA pone su ficha
-                        bestValue = Mathf.Max(bestValue, Minimax(matrix, true, alpha, beta));
-                        matrix[i, j] = 0; // Deshacemos el movimiento
-
+                        // Si es turno del AI, utilizaremos Maximo porque queremos el mayor valor posible
+                        bestValue = Mathf.Max(bestValue, value);
                         alpha = Mathf.Max(alpha, bestValue);
                         if (beta <= alpha)
-                            break; // Poda alpha
+                            break; // Podamos
                     }
                 }
             }
-            return bestValue;
         }
+        return bestValue;
     }
 }
